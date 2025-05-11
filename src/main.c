@@ -1,17 +1,14 @@
-#include <limits.h>
+#include <err.h>
 #include <readline/readline.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
-#ifndef ARG_MAX
-#define ARG_MAX 4096
-#endif
-
 static int argc;
-static char *argv[ARG_MAX];
+static char *argv[4096];
 
 static void parse_line(char *line) {
     argc = 0;
@@ -90,12 +87,8 @@ static void cmd_type(void) {
 }
 
 int main(void) {
-    for ( ; ; ) {
-        char *line = readline("$ ");
-        if (line == NULL) {     // End of input.
-            exit(EXIT_SUCCESS);
-        }
-
+    char *line;
+    while ( (line = readline("$ ")) != NULL) {
         parse_line(line);
 
         const char *cmd = argv[0];
@@ -106,9 +99,25 @@ int main(void) {
         } else if (strcmp(cmd, "type") == 0) {
             cmd_type();
         } else {
-            fprintf(stderr, "%s: command not found\n", cmd);
+            char *path = find_executable(cmd);
+            if (path == NULL) {
+                fprintf(stderr, "%s: command not found\n", cmd);
+                continue;
+            }
+
+            pid_t pid = fork();
+            if (pid < 0) {
+                err(EXIT_FAILURE, "cannot fork");
+            } else if (pid == 0) {
+                execvp(path, argv);
+                err(EXIT_FAILURE, "execvp");
+            }
+            wait(NULL);
+            free(path);
         }
 
         free(line);
     }
+
+    exit(EXIT_SUCCESS);
 }
