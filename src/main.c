@@ -21,6 +21,16 @@ static void parse_line(char *line) {
     argv[argc] = NULL;
 }
 
+static void cmd_echo(void) {
+    for (int i = 1; i < argc; i++) {
+        if (i > 1) {
+            printf(" ");
+        }
+        printf("%s", argv[i]);
+    }
+    printf("\n");
+}
+
 static void cmd_exit(void) {
     int status = atoi(argv[1]);
     exit(status);
@@ -36,7 +46,9 @@ int main(void) {
         parse_line(line);
 
         const char *cmd = argv[0];
-        if (strcmp(cmd, "exit") == 0) {
+        if (strcmp(cmd, "echo") == 0) {
+            cmd_echo();
+        } else if (strcmp(cmd, "exit") == 0) {
             cmd_exit();
         } else {
             fprintf(stderr, "%s: command not found\n", cmd);
