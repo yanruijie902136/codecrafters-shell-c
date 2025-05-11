@@ -1,15 +1,14 @@
+#include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-    // Flush after every printf
-    setbuf(stdout, NULL);
-
-    // Uncomment this block to pass the first stage
-    printf("$ ");
-
-    // Wait for user input
-    char input[100];
-    fgets(input, 100, stdin);
-    return 0;
+    for ( ; ; ) {
+        char *line = readline("$ ");
+        if (line == NULL) {
+            exit(EXIT_SUCCESS);
+        }
+        printf("%s: command not found\n", line);
+        free(line);
+    }
 }
