@@ -1,4 +1,5 @@
 #include <err.h>
+#include <errno.h>
 #include <readline/readline.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -18,6 +19,13 @@ static void parse_line(char *line) {
         arg = strtok(NULL, " ");
     }
     argv[argc] = NULL;
+}
+
+static void cmd_cd(void) {
+    const char *dst = argv[1];
+    if (chdir(dst) < 0) {
+        fprintf(stderr, "cd: %s: %s\n", dst, strerror(errno));
+    }
 }
 
 static void cmd_echo(void) {
@@ -42,7 +50,7 @@ static void cmd_pwd(void) {
 }
 
 static bool is_builtin(const char *name) {
-    static const char *builtins[] = {"echo", "exit", "pwd", "type"};
+    static const char *builtins[] = {"cd", "echo", "exit", "pwd", "type"};
     static const int num_builtins = sizeof(builtins) / sizeof(const char *);
 
     for (int i = 0; i < num_builtins; i++) {
@@ -98,7 +106,9 @@ int main(void) {
         parse_line(line);
 
         const char *cmd = argv[0];
-        if (strcmp(cmd, "echo") == 0) {
+        if (strcmp(cmd, "cd") == 0) {
+            cmd_cd();
+        } else if (strcmp(cmd, "echo") == 0) {
             cmd_echo();
         } else if (strcmp(cmd, "exit") == 0) {
             cmd_exit();
