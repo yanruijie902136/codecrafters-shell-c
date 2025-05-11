@@ -35,8 +35,14 @@ static void cmd_exit(void) {
     exit(status);
 }
 
+static void cmd_pwd(void) {
+    char *cwd = getcwd(NULL, 0);
+    printf("%s\n", cwd);
+    free(cwd);
+}
+
 static bool is_builtin(const char *name) {
-    static const char *builtins[] = {"echo", "exit", "type"};
+    static const char *builtins[] = {"echo", "exit", "pwd", "type"};
     static const int num_builtins = sizeof(builtins) / sizeof(const char *);
 
     for (int i = 0; i < num_builtins; i++) {
@@ -96,6 +102,8 @@ int main(void) {
             cmd_echo();
         } else if (strcmp(cmd, "exit") == 0) {
             cmd_exit();
+        } else if (strcmp(cmd, "pwd") == 0) {
+            cmd_pwd();
         } else if (strcmp(cmd, "type") == 0) {
             cmd_type();
         } else {
