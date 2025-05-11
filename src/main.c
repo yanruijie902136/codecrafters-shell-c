@@ -23,6 +23,9 @@ static void parse_line(char *line) {
 
 static void cmd_cd(void) {
     const char *dst = argv[1];
+    if (strcmp(dst, "~") == 0) {
+        dst = getenv("HOME");
+    }
     if (chdir(dst) < 0) {
         fprintf(stderr, "cd: %s: %s\n", dst, strerror(errno));
     }
