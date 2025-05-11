@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifndef ARG_MAX
 #define ARG_MAX 4096
@@ -49,14 +50,42 @@ static bool is_builtin(const char *name) {
     return false;
 }
 
+static char *find_executable(const char *name) {
+    char *dirs = strdup(getenv("PATH"));
+    char *dir = strtok(dirs, ":");
+    while (dir != NULL) {
+        size_t pathsz = strlen(dir) + strlen(name) + 2;
+        char *path = malloc(pathsz);
+        snprintf(path, pathsz, "%s/%s", dir, name);
+
+        if (access(path, X_OK) == 0) {
+            free(dirs);
+            return path;
+        }
+        free(path);
+
+        dir = strtok(NULL, ":");
+    }
+    free(dirs);
+    return NULL;
+}
+
 static void cmd_type(void) {
     for (int i = 1; i < argc; i++) {
         const char *name = argv[i];
         if (is_builtin(name)) {
             printf("%s is a shell builtin\n", name);
-        } else {
-            printf("%s: not found\n", name);
+            continue;
         }
+
+        char *path = find_executable(name);
+        if (path != NULL) {
+            printf("%s is %s\n", name, path);
+            free(path);
+            continue;
+        }
+
+        printf("%s: not found\n", name);
     }
 }
 
