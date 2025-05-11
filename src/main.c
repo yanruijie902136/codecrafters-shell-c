@@ -1,5 +1,6 @@
 #include <limits.h>
 #include <readline/readline.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +37,29 @@ static void cmd_exit(void) {
     exit(status);
 }
 
+static bool is_builtin(const char *name) {
+    static const char *builtins[] = {"echo", "exit", "type"};
+    static const int num_builtins = sizeof(builtins) / sizeof(const char *);
+
+    for (int i = 0; i < num_builtins; i++) {
+        if (strcmp(name, builtins[i]) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void cmd_type(void) {
+    for (int i = 1; i < argc; i++) {
+        const char *name = argv[i];
+        if (is_builtin(name)) {
+            printf("%s is a shell builtin\n", name);
+        } else {
+            printf("%s: not found\n", name);
+        }
+    }
+}
+
 int main(void) {
     for ( ; ; ) {
         char *line = readline("$ ");
@@ -50,6 +74,8 @@ int main(void) {
             cmd_echo();
         } else if (strcmp(cmd, "exit") == 0) {
             cmd_exit();
+        } else if (strcmp(cmd, "type") == 0) {
+            cmd_type();
         } else {
             fprintf(stderr, "%s: command not found\n", cmd);
         }
