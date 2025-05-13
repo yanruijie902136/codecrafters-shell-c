@@ -12,7 +12,7 @@ static Trie *trie = NULL;
 static void add_names(const PtrArray *names) {
     size_t num_names = ptr_array_get_size(names);
     for (size_t i = 0; i < num_names; i++) {
-        const char *name = ptr_array_get(names, i);
+        const char *name = ptr_array_get_const(names, i);
         trie_insert(trie, name);
     }
 }
@@ -41,7 +41,7 @@ static char *shell_completion_generator(const char *text, int state) {
     if (index >= ptr_array_get_size(candidates)) {
         return NULL;
     }
-    return xstrdup((const char *)ptr_array_get(candidates, index++));
+    return xstrdup((const char *)ptr_array_get_const(candidates, index++));
 }
 
 char **shell_completion(const char *text, int start, int end) {

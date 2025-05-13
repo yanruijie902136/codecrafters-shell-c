@@ -35,7 +35,12 @@ size_t ptr_array_get_size(const PtrArray *array) {
     return array->size;
 }
 
-const void *ptr_array_get(const PtrArray *array, size_t index) {
+const void *ptr_array_get_const(const PtrArray *array, size_t index) {
+    assert(index < array->size);
+    return array->ptrs[index];
+}
+
+void *ptr_array_get(PtrArray *array, size_t index) {
     assert(index < array->size);
     return array->ptrs[index];
 }

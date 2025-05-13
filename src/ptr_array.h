@@ -18,8 +18,11 @@ bool ptr_array_is_empty(const PtrArray *array);
 // Gets the number of pointers in an array.
 size_t ptr_array_get_size(const PtrArray *array);
 
+// Gets the const pointer at a specific location in an array.
+const void *ptr_array_get_const(const PtrArray *array, size_t index);
+
 // Gets the pointer at a specific location in an array.
-const void *ptr_array_get(const PtrArray *array, size_t index);
+void *ptr_array_get(PtrArray *array, size_t index);
 
 // Appends a pointer to the end of an array.
 void ptr_array_append(PtrArray *array, void *ptr);

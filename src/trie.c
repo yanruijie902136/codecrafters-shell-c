@@ -80,7 +80,6 @@ bool trie_search(const Trie *trie, const char *str) {
     return node != NULL && node->has_value;
 }
 
-
 static void collect_strings(const TrieNode *node, char *const str, size_t i, PtrArray *candidates) {
     if (node->has_value) {
         str[i] = '\0';

@@ -3,6 +3,7 @@
 
 typedef enum {
     TOKEN_WORD,
+    TOKEN_OR,
     TOKEN_EOF,
 } TokenType;
 

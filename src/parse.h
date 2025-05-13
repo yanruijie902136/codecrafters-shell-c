@@ -3,7 +3,7 @@
 
 #include "ptr_array.h"
 
-// Parses an array of tokens into an array of arguments (C strings).
+// Parses an array of tokens into an array of commands.
 PtrArray *parse(const PtrArray *tokens);
 
 #endif

@@ -13,11 +13,11 @@
 #include "scan.h"
 #include "token.h"
 
-static PtrArray *parse_line_to_args(const char *line) {
+static PtrArray *parse_line_to_cmds(const char *line) {
     PtrArray *tokens = scan(line);
-    PtrArray *arguments = parse(tokens);
+    PtrArray *cmds = parse(tokens);
     ptr_array_destroy(tokens, token_destroy);
-    return arguments;
+    return cmds;
 }
 
 int main(void) {
@@ -25,10 +25,10 @@ int main(void) {
 
     char *line;
     while ( (line = readline("$ ")) != NULL) {
-        PtrArray *arguments = parse_line_to_args(line);
+        PtrArray *cmds = parse_line_to_cmds(line);
         free(line);
-        execute(arguments);
-        ptr_array_destroy(arguments, free);
+        execute_cmds(cmds);
+        ptr_array_destroy(cmds, cmd_destroy);
     }
 
     exit(EXIT_SUCCESS);

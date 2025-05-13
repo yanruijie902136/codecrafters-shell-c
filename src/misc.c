@@ -31,7 +31,7 @@ bool is_builtin(const char *cmd_name) {
     const PtrArray *builtins = get_all_builtin_names();
     size_t num_builtins = ptr_array_get_size(builtins);
     for (size_t i = 0; i < num_builtins; i++) {
-        if (strcmp(cmd_name, ptr_array_get(builtins, i)) == 0) {
+        if (strcmp(cmd_name, ptr_array_get_const(builtins, i)) == 0) {
             return true;
         }
     }
@@ -71,7 +71,7 @@ char *find_executable(const char *name) {
     const PtrArray *dirs = split_path_to_dirs();
     size_t num_dirs = ptr_array_get_size(dirs);
     for (size_t i = 0; i < num_dirs; i++) {
-        const char *dir = ptr_array_get(dirs, i);
+        const char *dir = ptr_array_get_const(dirs, i);
         char *path = path_join(dir, name);
         if (is_executable(path)) {
             return path;
@@ -108,7 +108,7 @@ const PtrArray *get_all_executable_names(void) {
     const PtrArray *dirs = split_path_to_dirs();
     size_t num_dirs = ptr_array_get_size(dirs);
     for (size_t i = 0; i < num_dirs; i++) {
-        const char *dir = ptr_array_get(dirs, i);
+        const char *dir = ptr_array_get_const(dirs, i);
         add_executable_names_under_dir(dir, executables);
     }
 

@@ -1,6 +1,7 @@
 #include "cmd.h"
 #include "misc.h"
 #include "ptr_array.h"
+#include "xmalloc.h"
 
 #include <err.h>
 #include <errno.h>
@@ -11,7 +12,7 @@
 #include <unistd.h>
 
 static void cmd_cd(const PtrArray *arguments) {
-    const char *dir = ptr_array_get(arguments, 1);
+    const char *dir = ptr_array_get_const(arguments, 1);
     if (chdir(dir) < 0) {
         fprintf(stderr, "cd: %s: %s\n", dir, strerror(errno));
     }
@@ -23,13 +24,13 @@ static void cmd_echo(const PtrArray *arguments) {
         if (i > 1) {
             printf(" ");
         }
-        printf("%s", (const char *)ptr_array_get(arguments, i));
+        printf("%s", (const char *)ptr_array_get_const(arguments, i));
     }
     printf("\n");
 }
 
 static void cmd_exit(const PtrArray *arguments) {
-    int status = atoi((const char *)ptr_array_get(arguments, 1));
+    int status = atoi((const char *)ptr_array_get_const(arguments, 1));
     exit(status);
 }
 
@@ -42,7 +43,7 @@ static void cmd_pwd(const PtrArray *arguments) {
 static void cmd_type(const PtrArray *arguments) {
     size_t num_args = ptr_array_get_size(arguments);
     for (size_t i = 1; i < num_args; i++) {
-        const char *name = ptr_array_get(arguments, i);
+        const char *name = ptr_array_get_const(arguments, i);
 
         if (is_builtin(name)) {
             printf("%s is a shell builtin\n", name);
@@ -61,7 +62,7 @@ static void cmd_type(const PtrArray *arguments) {
 }
 
 static void execute_builtin(const PtrArray *arguments) {
-    const char *cmd_name = ptr_array_get(arguments, 0);
+    const char *cmd_name = ptr_array_get_const(arguments, 0);
     if (strcmp(cmd_name, "cd") == 0) {
         cmd_cd(arguments);
     } else if (strcmp(cmd_name, "echo") == 0) {
@@ -75,13 +76,14 @@ static void execute_builtin(const PtrArray *arguments) {
     }
 }
 
+__attribute__((noreturn))
 static void execute_external(const char *path, PtrArray *arguments) {
     ptr_array_append(arguments, NULL);
     execvp(path, (char **)ptr_array_get_c_array(arguments));
     err(EXIT_FAILURE, "execvp");
 }
 
-void execute(PtrArray *arguments) {
+static void execute(PtrArray *arguments, bool fork_on_external) {
     const char *cmd_name = ptr_array_get(arguments, 0);
     if (is_builtin(cmd_name)) {
         execute_builtin(arguments);
@@ -94,9 +96,79 @@ void execute(PtrArray *arguments) {
         return;
     }
 
-    if (fork() == 0) {
+    if (!fork_on_external) {
         execute_external(path, arguments);
+    } else {
+        if (fork() == 0) {
+            execute_external(path, arguments);
+        }
+        wait(NULL);
+        free(path);
     }
-    wait(NULL);
-    free(path);
+}
+
+struct Cmd {
+    PtrArray *arguments;
+};
+
+Cmd *cmd_create(PtrArray *arguments) {
+    Cmd *cmd = xmalloc(sizeof(Cmd));
+    cmd->arguments = arguments;
+    return cmd;
+}
+
+void cmd_destroy(void *ptr) {
+    if (ptr == NULL) {
+        return;
+    }
+    Cmd *cmd = ptr;
+    ptr_array_destroy(cmd->arguments, free);
+    free(cmd);
+}
+
+void execute_cmds(PtrArray *cmds) {
+    size_t num_cmds = ptr_array_get_size(cmds);
+    if (num_cmds == 0) {
+        return;
+    } else if (num_cmds == 1) {
+        Cmd *cmd = ptr_array_get(cmds, 0);
+        execute(cmd->arguments, true);
+        return;
+    }
+
+    int fds[2], prev_rfd;
+
+    for (size_t i = 0; i < num_cmds; i++) {
+        if (i < num_cmds - 1) {
+            pipe(fds);
+        }
+
+        if (fork() == 0) {
+            if (i > 0) {
+                dup2(prev_rfd, STDIN_FILENO);
+                close(prev_rfd);
+            }
+            if (i < num_cmds - 1) {
+                dup2(fds[1], STDOUT_FILENO);
+                close(fds[1]);
+            }
+
+            Cmd *cmd = ptr_array_get(cmds, i);
+            execute(cmd->arguments, false);
+            exit(EXIT_SUCCESS);
+        }
+
+        if (i > 0) {
+            close(prev_rfd);
+        }
+        if (i < num_cmds - 1) {
+            close(fds[1]);
+        }
+
+        prev_rfd = fds[0];
+    }
+
+    for (size_t i = 0; i < num_cmds; i++) {
+        wait(NULL);
+    }
 }

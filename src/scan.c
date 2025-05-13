@@ -67,12 +67,7 @@ static void double_quote(void) {
     advance();
 }
 
-static void scan_token(void) {
-    if (isspace(peek())) {
-        advance();
-        return;
-    }
-
+static void word(void) {
     while (!is_at_end() && !isspace(peek())) {
         switch (advance()) {
             case '\'':
@@ -92,6 +87,21 @@ static void scan_token(void) {
         }
     }
     add_token(TOKEN_WORD);
+}
+
+static void scan_token(void) {
+    switch (peek()) {
+        case '|':
+            advance();
+            add_token(TOKEN_OR);
+            break;
+        case ' ':
+            advance();
+            break;
+        default:
+            word();
+            break;
+    }
 }
 
 PtrArray *scan(const char *line) {
