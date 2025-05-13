@@ -48,6 +48,6 @@ void ptr_array_append(PtrArray *array, void *ptr) {
     array->ptrs[array->size++] = ptr;
 }
 
-void **ptr_array_to_c_array(PtrArray *array) {
+void **ptr_array_get_c_array(PtrArray *array) {
     return array->ptrs;
 }

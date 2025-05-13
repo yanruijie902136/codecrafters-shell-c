@@ -25,6 +25,6 @@ const void *ptr_array_get(const PtrArray *array, size_t index);
 void ptr_array_append(PtrArray *array, void *ptr);
 
 // Returns the underlying C array of pointers.
-void **ptr_array_to_c_array(PtrArray *array);
+void **ptr_array_get_c_array(PtrArray *array);
 
 #endif
