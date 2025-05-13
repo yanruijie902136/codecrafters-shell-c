@@ -52,6 +52,16 @@ static void single_quote(void) {
     advance();
 }
 
+static void double_quote(void) {
+    while (!is_at_end() && peek() != '\"') {
+        advance();
+    }
+    if (is_at_end()) {
+        errx(EXIT_FAILURE, "missing double quote");
+    }
+    advance();
+}
+
 static void scan_token(void) {
     if (isspace(peek())) {
         advance();
@@ -62,6 +72,9 @@ static void scan_token(void) {
         switch (advance()) {
             case '\'':
                 single_quote();
+                break;
+            case '\"':
+                double_quote();
                 break;
             default:
                 break;
