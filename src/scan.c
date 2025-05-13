@@ -76,6 +76,12 @@ static void scan_token(void) {
             case '\"':
                 double_quote();
                 break;
+            case '\\':
+                if (is_at_end()) {
+                    errx(EXIT_FAILURE, "expected character after backslash");
+                }
+                advance();
+                break;
             default:
                 break;
         }
