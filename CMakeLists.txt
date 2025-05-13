@@ -12,6 +12,7 @@ set(SOURCE_FILES
     "src/misc.c"
     "src/parse.c"
     "src/ptr_array.c"
+    "src/redir.c"
     "src/scan.c"
     "src/token.c"
     "src/trie.c"

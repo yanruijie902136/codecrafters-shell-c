@@ -4,6 +4,9 @@
 typedef enum {
     TOKEN_WORD,
     TOKEN_OR,
+    TOKEN_IO_NUMBER,
+    TOKEN_GREAT,
+    TOKEN_DGREAT,
     TOKEN_EOF,
 } TokenType;
 

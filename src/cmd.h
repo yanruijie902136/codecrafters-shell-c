@@ -6,7 +6,7 @@
 typedef struct Cmd Cmd;
 
 // Allocates memory for a command.
-Cmd *cmd_create(PtrArray *arguments);
+Cmd *cmd_create(PtrArray *arguments, PtrArray *redirs);
 
 // Deallocates memory for a command.
 void cmd_destroy(void *cmd);

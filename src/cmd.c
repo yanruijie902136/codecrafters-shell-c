@@ -1,6 +1,7 @@
 #include "cmd.h"
 #include "misc.h"
 #include "ptr_array.h"
+#include "redir.h"
 #include "xmalloc.h"
 
 #include <err.h>
@@ -83,37 +84,43 @@ static void execute_external(const char *path, PtrArray *arguments) {
     err(EXIT_FAILURE, "execvp");
 }
 
-static void execute(PtrArray *arguments, bool fork_on_external) {
-    const char *cmd_name = ptr_array_get(arguments, 0);
+struct Cmd {
+    PtrArray *arguments;
+    PtrArray *redirs;
+};
+
+static void execute(Cmd *cmd, bool fork_on_external) {
+    size_t num_redirs = ptr_array_get_size(cmd->redirs);
+    for (size_t i = 0; i < num_redirs; i++) {
+        redir_do((Redir *)ptr_array_get(cmd->redirs, i));
+    }
+
+    const char *cmd_name = ptr_array_get(cmd->arguments, 0);
     if (is_builtin(cmd_name)) {
-        execute_builtin(arguments);
-        return;
-    }
-
-    char *path = find_executable(cmd_name);
-    if (path == NULL) {
-        fprintf(stderr, "%s: command not found\n", cmd_name);
-        return;
-    }
-
-    if (!fork_on_external) {
-        execute_external(path, arguments);
+        execute_builtin(cmd->arguments);
     } else {
-        if (fork() == 0) {
-            execute_external(path, arguments);
+        char *path = find_executable(cmd_name);
+        if (path == NULL) {
+            fprintf(stderr, "%s: command not found\n", cmd_name);
+            return;
+        }
+
+        if (!fork_on_external || fork() == 0) {
+            execute_external(path, cmd->arguments);
         }
         wait(NULL);
         free(path);
     }
+
+    for (size_t i = 0; i < num_redirs; i++) {
+        redir_undo((Redir *)ptr_array_get(cmd->redirs, num_redirs - 1 - i));
+    }
 }
 
-struct Cmd {
-    PtrArray *arguments;
-};
-
-Cmd *cmd_create(PtrArray *arguments) {
+Cmd *cmd_create(PtrArray *arguments, PtrArray *redirs) {
     Cmd *cmd = xmalloc(sizeof(Cmd));
     cmd->arguments = arguments;
+    cmd->redirs = redirs;
     return cmd;
 }
 
@@ -123,6 +130,7 @@ void cmd_destroy(void *ptr) {
     }
     Cmd *cmd = ptr;
     ptr_array_destroy(cmd->arguments, free);
+    ptr_array_destroy(cmd->redirs, redir_destroy);
     free(cmd);
 }
 
@@ -131,8 +139,7 @@ void execute_cmds(PtrArray *cmds) {
     if (num_cmds == 0) {
         return;
     } else if (num_cmds == 1) {
-        Cmd *cmd = ptr_array_get(cmds, 0);
-        execute(cmd->arguments, true);
+        execute((Cmd *)ptr_array_get(cmds, 0), true);
         return;
     }
 
@@ -153,8 +160,7 @@ void execute_cmds(PtrArray *cmds) {
                 close(fds[1]);
             }
 
-            Cmd *cmd = ptr_array_get(cmds, i);
-            execute(cmd->arguments, false);
+            execute((Cmd *)ptr_array_get(cmds, i), false);
             exit(EXIT_SUCCESS);
         }
 

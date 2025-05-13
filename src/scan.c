@@ -32,6 +32,14 @@ static char advance(void) {
     return *scanner.current++;
 }
 
+static bool match(char expected) {
+    if (peek() != expected) {
+        return false;
+    }
+    advance();
+    return true;
+}
+
 static char *get_lexeme(void) {
     size_t lexeme_length = scanner.current - scanner.start;
     return xstrndup(scanner.start, lexeme_length);
@@ -89,8 +97,21 @@ static void word(void) {
     add_token(TOKEN_WORD);
 }
 
+static void number(void) {
+    while (!is_at_end() && isdigit(peek())) {
+        advance();
+    }
+
+    if (peek() == '>') {
+        add_token(TOKEN_IO_NUMBER);
+    } else {
+        word();
+    }
+}
+
 static void scan_token(void) {
-    switch (peek()) {
+    char c = peek();
+    switch (c) {
         case '|':
             advance();
             add_token(TOKEN_OR);
@@ -98,8 +119,16 @@ static void scan_token(void) {
         case ' ':
             advance();
             break;
+        case '>':
+            advance();
+            add_token(match('>') ? TOKEN_DGREAT : TOKEN_GREAT);
+            break;
         default:
-            word();
+            if (isdigit(c)) {
+                number();
+            } else {
+                word();
+            }
             break;
     }
 }
