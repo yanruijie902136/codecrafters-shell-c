@@ -54,7 +54,12 @@ static void single_quote(void) {
 
 static void double_quote(void) {
     while (!is_at_end() && peek() != '\"') {
-        advance();
+        if (advance() == '\\') {
+            if (is_at_end()) {
+                errx(EXIT_FAILURE, "expected character after backslash");
+            }
+            advance();
+        }
     }
     if (is_at_end()) {
         errx(EXIT_FAILURE, "missing double quote");
