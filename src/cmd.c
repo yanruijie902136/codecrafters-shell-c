@@ -38,7 +38,12 @@ static void cmd_exit(const PtrArray *arguments) {
 }
 
 static void cmd_history(const PtrArray *arguments) {
-    for (int i = history_base; i <= history_length; i++) {
+    int n = history_length + 1 - history_base;
+    if (ptr_array_get_size(arguments) > 1) {
+        n = atoi((const char *)ptr_array_get_const(arguments, 1));
+    }
+
+    for (int i = history_length + 1 - n; i <= history_length; i++) {
         HIST_ENTRY *entry = history_get(i);
         printf("%5d  %s\n", i, entry->line);
     }
