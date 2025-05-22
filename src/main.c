@@ -1,3 +1,4 @@
+#include <readline/history.h>
 #include <readline/readline.h>
 #include <stdlib.h>
 
@@ -17,9 +18,11 @@ static PtrArray *parse_line_to_cmds(const char *line) {
 
 int main(void) {
     rl_attempted_completion_function = shell_completion;
+    using_history();
 
     char *line;
     while ( (line = readline("$ ")) != NULL) {
+        add_history(line);
         PtrArray *cmds = parse_line_to_cmds(line);
         free(line);
         execute_cmds(cmds);

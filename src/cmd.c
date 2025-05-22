@@ -6,6 +6,8 @@
 
 #include <err.h>
 #include <errno.h>
+#include <readline/history.h>
+#include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +35,13 @@ static void cmd_echo(const PtrArray *arguments) {
 static void cmd_exit(const PtrArray *arguments) {
     int status = atoi((const char *)ptr_array_get_const(arguments, 1));
     exit(status);
+}
+
+static void cmd_history(const PtrArray *arguments) {
+    for (int i = history_base; i <= history_length; i++) {
+        HIST_ENTRY *entry = history_get(i);
+        printf("%5d  %s\n", i, entry->line);
+    }
 }
 
 static void cmd_pwd(const PtrArray *arguments) {
@@ -70,6 +79,8 @@ static void execute_builtin(const PtrArray *arguments) {
         cmd_echo(arguments);
     } else if (strcmp(cmd_name, "exit") == 0) {
         cmd_exit(arguments);
+    } else if (strcmp(cmd_name, "history") == 0) {
+        cmd_history(arguments);
     } else if (strcmp(cmd_name, "pwd") == 0) {
         cmd_pwd(arguments);
     } else if (strcmp(cmd_name, "type") == 0) {
