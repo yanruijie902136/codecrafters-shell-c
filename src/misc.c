@@ -18,7 +18,7 @@ const PtrArray *get_all_builtin_names(void) {
 
     builtins = ptr_array_create();
 
-    static const char *names[] = {"cd", "echo", "exit", "pwd", "type"};
+    static const char *names[] = {"cd", "echo", "exit", "history", "pwd", "type"};
     static size_t num_builtins = sizeof(names) / sizeof(const char *);
     for (size_t i = 0; i < num_builtins; i++) {
         ptr_array_append(builtins, xstrdup(names[i]));
