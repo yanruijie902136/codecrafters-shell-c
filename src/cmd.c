@@ -46,8 +46,10 @@ static void cmd_history(const PtrArray *arguments) {
 
         if (strcmp(option, "-r") == 0) {
             read_history(histfile);
-            return;
+        } else if (strcmp(option, "-w") == 0) {
+            write_history(histfile);
         }
+        return;
     }
 
     if (ptr_array_get_size(arguments) > 1) {
