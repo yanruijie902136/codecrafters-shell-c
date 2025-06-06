@@ -9,6 +9,16 @@
 #include "scan.h"
 #include "token.h"
 
+static void setup(void) {
+    rl_attempted_completion_function = shell_completion;
+
+    using_history();
+    const char *histfile = getenv("HISTFILE");
+    if (histfile != NULL) {
+        read_history(histfile);
+    }
+}
+
 static PtrArray *parse_line_to_cmds(const char *line) {
     PtrArray *tokens = scan(line);
     PtrArray *cmds = parse(tokens);
@@ -17,8 +27,7 @@ static PtrArray *parse_line_to_cmds(const char *line) {
 }
 
 int main(void) {
-    rl_attempted_completion_function = shell_completion;
-    using_history();
+    setup();
 
     char *line;
     while ( (line = readline("$ ")) != NULL) {
