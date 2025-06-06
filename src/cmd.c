@@ -38,6 +38,7 @@ static void cmd_exit(const PtrArray *arguments) {
 }
 
 static void cmd_history(const PtrArray *arguments) {
+    static int last_append_n = 0;
     int n = history_length + 1 - history_base;
 
     if (ptr_array_get_size(arguments) > 2) {
@@ -48,6 +49,9 @@ static void cmd_history(const PtrArray *arguments) {
             read_history(histfile);
         } else if (strcmp(option, "-w") == 0) {
             write_history(histfile);
+        } else if (strcmp(option, "-a") == 0) {
+            append_history(n - last_append_n, histfile);
+            last_append_n = n;
         }
         return;
     }
